@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1120" viewBox="0 0 1600 1120" role="img" aria-labelledby="title description">
+  <title id="title">Fuel Optimizer Backend Data Flow</title>
+  <desc id="description">Flow from the client POST request through Django routing, geocoding, OSRM route generation, Geoapify station search, local route filtering and CSV price matching, fuel optimization, and the JSON response.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#15803d"/>
+    </marker>
+    <style>
+      text { font-family: "Segoe UI", Arial, sans-serif; fill: #1e293b; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 15px; fill: #475569; }
+      .boundary-label { font-size: 19px; font-weight: 700; fill: #14532d; }
+      .node-title { font-size: 17px; font-weight: 700; }
+      .node-copy { font-size: 13px; fill: #334155; }
+      .small { font-size: 12px; fill: #475569; }
+      .external-title { font-size: 16px; font-weight: 700; }
+      .edge-label { font-size: 12px; fill: #475569; }
+      .edge { fill: none; stroke: #334155; stroke-width: 2.2; marker-end: url(#arrow); }
+      .edge-dashed { fill: none; stroke: #64748b; stroke-width: 1.8; stroke-dasharray: 6 5; marker-end: url(#arrow); }
+      .edge-green { fill: none; stroke: #15803d; stroke-width: 2.2; marker-end: url(#arrowGreen); }
+      .node { stroke: #475569; stroke-width: 1.6; rx: 12; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1120" fill="#f8fafc"/>
+  <text x="800" y="46" text-anchor="middle" class="title">Fuel Optimizer — Backend Data Flow</text>
+  <text x="800" y="73" text-anchor="middle" class="subtitle">Route planning and fuel-stop optimization • POST /api/route/plan/</text>
+
+  <rect x="220" y="95" width="1000" height="970" rx="22" fill="#ffffff" stroke="#166534" stroke-width="3" stroke-dasharray="10 8"/>
+  <text x="720" y="125" text-anchor="middle" class="boundary-label">Django application • config + optimizer + geocoding</text>
+
+  <!-- Client and request entry -->
+  <rect x="28" y="170" width="165" height="112" class="node" fill="#fecaca"/>
+  <text x="110" y="205" text-anchor="middle" class="node-title">Client</text>
+  <text x="110" y="228" text-anchor="middle" class="node-copy">Postman / browser</text>
+  <text x="110" y="250" text-anchor="middle" class="small">start + destination</text>
+
+  <rect x="260" y="160" width="205" height="95" class="node" fill="#bbf7d0"/>
+  <text x="362" y="196" text-anchor="middle" class="node-title">URL routing</text>
+  <text x="362" y="221" text-anchor="middle" class="node-copy">config/urls.py</text>
+
+  <rect x="520" y="160" width="235" height="95" class="node" fill="#bfdbfe"/>
+  <text x="637" y="196" text-anchor="middle" class="node-title">API view</text>
+  <text x="637" y="221" text-anchor="middle" class="node-copy">optimizer/views.py</text>
+
+  <rect x="810" y="160" width="345" height="95" class="node" fill="#fde68a"/>
+  <text x="982" y="196" text-anchor="middle" class="node-title">Route-plan service</text>
+  <text x="982" y="221" text-anchor="middle" class="node-copy">optimizer/services.py</text>
+
+  <path d="M193 215 L260 215" class="edge"/>
+  <text x="225" y="204" text-anchor="middle" class="edge-label">JSON POST</text>
+  <path d="M465 207 L520 207" class="edge"/>
+  <text x="492" y="195" text-anchor="middle" class="edge-label">route</text>
+  <path d="M755 207 L810 207" class="edge"/>
+  <text x="782" y="195" text-anchor="middle" class="edge-label">validate</text>
+
+  <!-- Geocoding -->
+  <rect x="270" y="315" width="300" height="112" class="node" fill="#e9d5ff"/>
+  <text x="420" y="350" text-anchor="middle" class="node-title">Geocode locations</text>
+  <text x="420" y="375" text-anchor="middle" class="node-copy">Resolve start and destination</text>
+  <text x="420" y="398" text-anchor="middle" class="small">US coordinates • cached in process</text>
+  <path d="M900 255 C850 290 650 280 570 350" class="edge"/>
+  <text x="728" y="294" text-anchor="middle" class="edge-label">location text</text>
+
+  <!-- Route and station acquisition -->
+  <rect x="650" y="315" width="505" height="112" class="node" fill="#fde68a"/>
+  <text x="902" y="350" text-anchor="middle" class="node-title">Route + station orchestration</text>
+  <text x="902" y="375" text-anchor="middle" class="node-copy">geocoding/route_stations.py</text>
+  <text x="902" y="398" text-anchor="middle" class="small">OSRM route → simplify geometry for Geoapify search</text>
+  <path d="M570 371 L650 371" class="edge"/>
+  <text x="610" y="359" text-anchor="middle" class="edge-label">coordinates</text>
+
+  <!-- External provider lane -->
+  <rect x="1260" y="285" width="300" height="112" class="node" fill="#dbeafe"/>
+  <text x="1410" y="321" text-anchor="middle" class="external-title">Geoapify Geocoding</text>
+  <text x="1410" y="347" text-anchor="middle" class="node-copy">Start / destination lookup</text>
+  <text x="1410" y="372" text-anchor="middle" class="small">Returns formatted places + coordinates</text>
+  <path d="M570 337 C790 278 1080 278 1260 337" class="edge"/>
+  <text x="900" y="276" text-anchor="middle" class="edge-label">geocoding request</text>
+  <path d="M1260 367 C1080 410 790 410 570 367" class="edge-dashed"/>
+  <text x="910" y="421" text-anchor="middle" class="edge-label">coordinates</text>
+
+  <rect x="1260" y="455" width="300" height="102" class="node" fill="#bfdbfe"/>
+  <text x="1410" y="490" text-anchor="middle" class="external-title">OSRM</text>
+  <text x="1410" y="515" text-anchor="middle" class="node-copy">Driving route + full geometry</text>
+  <text x="1410" y="538" text-anchor="middle" class="small">distance and duration</text>
+  <path d="M1000 427 C1060 455 1140 490 1260 500" class="edge"/>
+  <text x="1135" y="456" text-anchor="middle" class="edge-label">route request</text>
+  <path d="M1260 530 C1140 555 1060 540 1000 427" class="edge-dashed"/>
+  <text x="1132" y="554" text-anchor="middle" class="edge-label">full route geometry</text>
+
+  <rect x="1260" y="605" width="300" height="112" class="node" fill="#bfdbfe"/>
+  <text x="1410" y="641" text-anchor="middle" class="external-title">Geoapify Places</text>
+  <text x="1410" y="667" text-anchor="middle" class="node-copy">Fuel stations near route</text>
+  <text x="1410" y="692" text-anchor="middle" class="small">Polyline corridor • paginated</text>
+  <path d="M1050 427 C1110 490 1140 615 1260 650" class="edge"/>
+  <text x="1168" y="590" text-anchor="middle" class="edge-label">simplified geometry</text>
+  <path d="M1260 690 C1150 730 1090 675 1050 427" class="edge-dashed"/>
+  <text x="1177" y="730" text-anchor="middle" class="edge-label">station features</text>
+
+  <!-- Local processing -->
+  <rect x="300" y="485" width="855" height="132" class="node" fill="#dcfce7"/>
+  <text x="727" y="520" text-anchor="middle" class="node-title">Filter, deduplicate, order, and match stations</text>
+  <text x="727" y="547" text-anchor="middle" class="node-copy">Full OSRM geometry is used to calculate route distance and position accurately.</text>
+  <text x="727" y="571" text-anchor="middle" class="node-copy">Keep stations within the corridor • remove duplicates • sort by route mile</text>
+  <text x="727" y="594" text-anchor="middle" class="small">Match names / location conservatively; only VERIFIED CSV matches retain a verified price.</text>
+  <path d="M850 427 C810 450 760 460 730 485" class="edge"/>
+  <text x="768" y="455" text-anchor="middle" class="edge-label">full geometry + features</text>
+
+  <rect x="1260" y="790" width="300" height="125" class="node" fill="#fecdd3"/>
+  <text x="1410" y="826" text-anchor="middle" class="external-title">Local CSV price data</text>
+  <text x="1410" y="852" text-anchor="middle" class="node-copy">data/cleaned_fuel_prices.csv</text>
+  <text x="1410" y="878" text-anchor="middle" class="small">Indexed for matching; valid US prices</text>
+  <text x="1410" y="898" text-anchor="middle" class="small">also provide the average-price estimate</text>
+  <path d="M1155 580 C1210 580 1200 840 1260 840" class="edge"/>
+  <text x="1208" y="713" text-anchor="middle" class="edge-label">price matching</text>
+
+  <rect x="300" y="675" width="855" height="132" class="node" fill="#e9d5ff"/>
+  <text x="727" y="710" text-anchor="middle" class="node-title">Fuel-stop optimizer</text>
+  <text x="727" y="737" text-anchor="middle" class="node-copy">optimizer/fuel_optimizer.py • 50-gallon tank • 10 MPG • 0.1-gallon units</text>
+  <text x="727" y="761" text-anchor="middle" class="node-copy">Top-down DP chooses skip or full refill at eligible stations.</text>
+  <text x="727" y="784" text-anchor="middle" class="small">Unverified / missing prices use the CSV average for optimization only, marked as estimates.</text>
+  <path d="M727 617 L727 675" class="edge"/>
+  <text x="742" y="650" class="edge-label">ordered stations + verified matches</text>
+  <path d="M1260 880 C1195 880 1200 770 1155 770" class="edge"/>
+  <text x="1200" y="827" text-anchor="middle" class="edge-label">US price average</text>
+
+  <!-- Response -->
+  <rect x="300" y="855" width="855" height="140" class="node" fill="#fef3c7"/>
+  <text x="727" y="891" text-anchor="middle" class="node-title">Build JSON response</text>
+  <text x="727" y="918" text-anchor="middle" class="node-copy">route geometry (simplified) • sorted station names • fuel_optimization</text>
+  <text x="727" y="942" text-anchor="middle" class="node-copy">total_fuel_cost • selected station IDs / names • price assumptions</text>
+  <text x="727" y="970" text-anchor="middle" class="small">optimizer/services.py returns the response; optimizer/views.py serializes it as JSON.</text>
+  <path d="M727 807 L727 855" class="edge"/>
+
+  <!-- Response path back through view and client -->
+  <path d="M300 925 L235 925 L235 270 C235 260 400 270 637 255" class="edge-green"/>
+  <text x="232" y="815" text-anchor="end" class="edge-label">response data</text>
+  <path d="M520 175 C475 140 215 140 110 170" class="edge-green"/>
+  <text x="332" y="133" text-anchor="middle" class="edge-label">HTTP JSON response</text>
+
+  <rect x="1260" y="965" width="300" height="65" rx="12" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="1410" y="990" text-anchor="middle" class="small">External services and local data</text>
+  <text x="1410" y="1012" text-anchor="middle" class="small">are dependencies, not Django modules.</text>
+</svg>
